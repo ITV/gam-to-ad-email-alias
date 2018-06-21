@@ -1,4 +1,4 @@
-# gam-to-ad-email-alias
+# GAM (G-Suite) to Active Directory. Email Alias import
 
 This script takes email aliases from GSuite and imports them to the 
 proxyAddresses field in Active Directory in the format SMTP: addresss 
