@@ -1,23 +1,31 @@
 ﻿# Google to AD Email Alias Import
 # Leon Topliss - ITV Plc
 
+# -csv	  		- the input GAM CSV file
+# -commit 		- by default false, but needs to be specified as an option to write changes
+#				  without commit its a dry run and the changed that would be made are logged
+# -aggressive  	- if specified skips the delay in between users. Will place AD under additional load
 
-# Is this a dry run - If true we won't make any changes just log as if we were.
-# Set this to "no" if you want to apply or "yes" to log the changes that would be made in the debug log
-$dryRun = "yes"
+param (
+	[string]$csv,
+	[switch]$commit = $false,
+	[switch]$aggressive = $false
+)
+ 
+if(-not($csv)) { Throw "The GAM user extract CSV must be specified -csv" }
 
-# The variables below are:
-# $GoogleExportCsvFile = CSV file containing the GAM G-Suite extract
+
+# Log File Output
 # $DebugLogFile = The debug log output.
 # $ErrorLogFile = A seperare log of the errors, they are also included in the debug output 
-# All files should be in the same directory as the script
-
-$CsvFile = "allusers.csv" 
-$DebugLogFile = "debug-output.txt" 
-$ErrorLogFile = "error-output.txt" 
+# Log files will be written to the same directory
+$fileDate = $((get-date).ToString("yyyyMMdd-hhmmss"))
+$DebugLogFile = "debug-output-" +  $fileDate + ".txt"
+$ErrorLogFile = "error-output-" +  $fileDate + ".txt" 
 
 # How long in milliseconds to sleep between adding users
 # The aim is to avoid hammering AD
+# If aggressive this is not applicable
 $sleepBetweenUsers = 500
 
 
@@ -46,18 +54,16 @@ Function Log
     }
 }
 
-$csvFile = $scriptDir + "\" + $CsvFile
-
-
 # Read the CSV File
 # Powershell is pretty good at CSV parsing so you can use the headers at the top
 # as keys for the data
-$csv = Import-Csv $csvFile
+
+$csvParse = Import-Csv $csv
 
 $index = 0
-$total = $csv.count
+$total = $csvParse.count
 
-foreach ($line in $csv) {
+foreach ($line in $csvParse) {
 
     $index++
 
@@ -77,10 +83,12 @@ foreach ($line in $csv) {
     }
 
     $aliasArray = @()
-    # Look at each header if it contains aliases.*
+    # Look at each header if it matches ^aliases.*
+	# We are matching line begins with as we should not import nonEditableAliases.*
+	# as nonEditableAliases is set globally in G-Suite and not on a per user basis
     # Take the value it's an alias we will want to impliment
     foreach ($property in $line.PSObject.Properties) {
-        if($property.Name -match "aliases.*") {
+        if($property.Name -match "^aliases.*") {
             $alias = $property.Value
             # If the value isn't empty use it
             if ($alias) {
@@ -102,13 +110,23 @@ foreach ($line in $csv) {
     # and 
     # an array of aliases $aliasArray
     # for the individual row of the CSV
+	
+	
+	
+	# If there aren't any aliases skip the ad lookup and continue to the
+	# next user
+	if ($aliasArray.count -eq 0) {
+		continue
+	}
 
 
     # Set a sleep interval between users to minimise load
-    Start-Sleep -m $sleepBetweenUsers
-
+	if (-not $aggressive) {
+		Start-Sleep -m $sleepBetweenUsers
+	}
+	
     # Retrieve the object we would like to add the alias to using primary email as the key
-    $user = Get-ADObject -Properties mail -Filter {mail -eq $primaryEmail}
+    $user = Get-ADUser -Properties mail -Filter {mail -eq $primaryEmail}
 
     # If the user primary email doesn't exist in then skip.
     if (-Not $user) {
@@ -126,7 +144,7 @@ foreach ($line in $csv) {
 
         # Check the email alias isn't set elsewhere
         # If we find the alias is set elswhere just report an error.
-        $aliasExists = Get-ADObject -Properties proxyAddresses -Filter {proxyAddresses -eq $aliasAttribute}
+        $aliasExists = Get-ADUser -Properties proxyAddresses -Filter {proxyAddresses -eq $aliasAttribute}
         if ($aliasExists) {
             if ($aliasExists –Match $user) {
                 Log "INFO" "THe alias $alias is already set on the user $aliasExists"
@@ -138,7 +156,7 @@ foreach ($line in $csv) {
 
         # The user exists and the alias isn't set elsewhere (if we have made it this far)
         # So now add the alias
-        if ($dryRun -Match "No") {
+        if ($commit) {
             $user | Set-ADUser -Add @{ProxyAddresses=$aliasAttribute}
             Log "INFO" "Added the alias $alias  to user $user"
         } else {
