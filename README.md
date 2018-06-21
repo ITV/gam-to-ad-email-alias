@@ -29,7 +29,7 @@ Flags that can be used:
 ```
 -csv (Mandatory) - the input GAM CSV file
 -commit - to commit changes
--aggressive - Skips the delay in between users. Will place Active Directory under additional load
+-aggressive - Skips the delay between users. Will place Active Directory under additional load
 ```
 
 The GAM output will contain both a number of rows aliases.{integer} and nonEditableAliases.{integer}
