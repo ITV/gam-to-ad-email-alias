@@ -22,7 +22,7 @@ Step 4 - Review the debug output to ensure you are comftable with the changes th
 
 Step 5 - Commit the changes
 ```
-.\alias_add.ps1 -csv allusers.csv -commit
+.\alias_add.ps1 -csv users.csv -commit
 ```
 
 Flags that can be used:
