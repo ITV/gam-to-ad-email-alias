@@ -111,19 +111,16 @@ foreach ($line in $csvParse) {
     # an array of aliases $aliasArray
     # for the individual row of the CSV
 	
-	
-	
-	# If there aren't any aliases skip the ad lookup and continue to the
-	# next user
-	if ($aliasArray.count -eq 0) {
-		continue
-	}
-
+    # If there aren't any aliases skip the ad lookup and continue to the
+    # next user
+    if ($aliasArray.count -eq 0) {
+    	continue
+    }
 
     # Set a sleep interval between users to minimise load
-	if (-not $aggressive) {
-		Start-Sleep -m $sleepBetweenUsers
-	}
+    if (-not $aggressive) {
+	Start-Sleep -m $sleepBetweenUsers
+    }
 	
     # Retrieve the object we would like to add the alias to using primary email as the key
     $user = Get-ADUser -Properties mail -Filter {mail -eq $primaryEmail}
@@ -134,14 +131,12 @@ foreach ($line in $csvParse) {
         continue
     }
 
-
     # Now loop through each alias and add it to the AD account
     Foreach ($alias in $aliasArray) {
             
         # Prepend SMTP: to the alias
         $aliasAttribute = "SMTP:$($alias)"
             
-
         # Check the email alias isn't set elsewhere
         # If we find the alias is set elswhere just report an error.
         $aliasExists = Get-ADUser -Properties proxyAddresses -Filter {proxyAddresses -eq $aliasAttribute}
@@ -164,9 +159,3 @@ foreach ($line in $csvParse) {
         }
     }
 }
-
-
-
-
-
-
