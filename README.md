@@ -17,8 +17,7 @@ Step 3 - Run the script as a dry run
 ```
 .\alias_add.ps1 -csv users.csv
 ```
-Step 4 - Review the debug output to ensure you are comftable with the changes that would be commited
-         Debug and error log files will be written to the same directory
+Step 4 - Review the debug output to ensure you are comftable with the changes that would be commited. Timestamped debug and error log files will be written to the same directory
 
 Step 5 - Commit the changes
 ```
