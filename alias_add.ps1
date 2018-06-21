@@ -12,7 +12,7 @@ $dryRun = "yes"
 # $ErrorLogFile = A seperare log of the errors, they are also included in the debug output 
 # All files should be in the same directory as the script
 
-$GoogleExportCsvFile = "allusers.csv" 
+$CsvFile = "allusers.csv" 
 $DebugLogFile = "debug-output.txt" 
 $ErrorLogFile = "error-output.txt" 
 
@@ -46,7 +46,7 @@ Function Log
     }
 }
 
-$csvFile = $scriptDir + "\" + $GoogleExportCsvFile
+$csvFile = $scriptDir + "\" + $CsvFile
 
 
 # Read the CSV File
@@ -71,7 +71,7 @@ foreach ($line in $csv) {
         -PercentComplete (($index/$total)*100)
     
     # Check the primary email is in the right format
-    if (-Not [bool]($primary_email -as [Net.Mail.MailAddress])) {
+    if (-Not [bool]($primaryEmail -as [Net.Mail.MailAddress])) {
         Log "ERROR" "primary email: $primary_email is not a valid email format"
         continue
     }
