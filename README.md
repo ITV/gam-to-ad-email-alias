@@ -4,6 +4,8 @@
 This script takes email aliases from GSuite and imports them to the 
 proxyAddresses field in Active Directory in the format SMTP: addresss 
 
+The G-Suite account and primary email field in Active Directory must match for the aliases to be correctly added.
+
 This will ensure GSuite and Active Directory aliases are aligned prior to enabling syncronisation (GCDS)
 
 Step 1 - use the GAM tool (https://github.com/jay0lee/GAM) and export users
